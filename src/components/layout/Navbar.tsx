@@ -1,10 +1,8 @@
 import { AppBar, Box, Container, IconButton, Menu, MenuItem, Toolbar, Typography, Button } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { Link as RouterLink } from 'react-router-dom'
 import MenuIcon from '@mui/icons-material/Menu'
 import { useState, useEffect } from 'react'
-import { ConnectButton } from '@mysten/dapp-kit'
-import { useDeviceDetect } from '@/hooks'
-import { styled } from '@mui/material/styles'
 import { Auth } from '@/utils/auth'
 import { KeyboardArrowDown } from '@mui/icons-material'
 
@@ -74,68 +72,6 @@ const logoStyles = {
   }
 }
 
-const ButtonContainer = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  marginLeft: '16px',
-  position: 'relative',
-  '& ~ div > button': {
-    display: 'none !important'
-  },
-  '& button[data-connected="true"]': {
-    ...commonButtonStyles,
-    backgroundColor: '#000'
-  },
-  '& button:not([data-connected="true"])': {
-    ...commonButtonStyles,
-    backgroundColor: '#0071e3',
-    '&:hover': {
-      backgroundColor: '#0077ED'
-    }
-  }
-})
-
-const StyledConnectButton = styled(ConnectButton)`
-  && {
-    font-size: 14px !important;
-    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-weight: 600 !important;
-    line-height: 20px !important;
-    padding: 12px 24px !important;
-    height: 44px !important;
-    border-radius: 20px !important;
-    text-transform: none !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.2s ease;
-    cursor: pointer;
-    color: white;
-    background-color: #0071e3;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 140px !important;
-
-    &:hover {
-      background-color: #0077ED;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-      transform: translateY(-2px);
-      filter: brightness(1.1);
-    }
-
-    &[data-connected="true"], 
-    &[data-connected="true"] span,
-    &[data-connected="true"] div {
-      font-size: 14px !important;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif !important;
-      font-weight: 600 !important;
-      line-height: 20px !important;
-    }
-  }
-`
-
 const StyledAuthButton = styled(Button)(({}) => ({
   '&&': {
     fontSize: '14px !important',
@@ -175,7 +111,6 @@ const pages = [
 
 export default function Navbar() {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
-  const isMobile = useDeviceDetect()
   const [menuOpen, setMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(Auth.isAuthenticated())
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
@@ -416,10 +351,6 @@ export default function Navbar() {
                 Sign in with Google
               </StyledAuthButton>
             )}
-            {/* Connect Wallet 버튼 주석 처리 */}
-            {/* <ButtonContainer>
-              <StyledConnectButton ... />
-            </ButtonContainer> */}
           </Box>
 
           {/* Mobile Menu */}
@@ -463,6 +394,35 @@ export default function Navbar() {
                 }
               }}
             >
+              {isAuthenticated ? (
+                <MenuItem 
+                  sx={{ 
+                    padding: '16px',
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      cursor: 'default'
+                    }
+                  }}
+                >
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontSize: '0.75rem', mb: 0.5 }}>
+                      Signed in as
+                    </Typography>
+                    <Typography sx={{ 
+                      fontSize: '14px',
+                      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                      fontWeight: 500,
+                      color: 'text.primary', 
+                      opacity: 0.9 
+                    }}>
+                      {userEmail}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ) : null}
+
               {pages.map((page) => (
                 <MenuItem 
                   key={page.name}
@@ -481,56 +441,32 @@ export default function Navbar() {
                   </Typography>
                 </MenuItem>
               ))}
-              <MenuItem 
-                onClick={isAuthenticated ? handleLogout : handleZkLogin}
-                sx={{
-                  width: '100%',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                <Typography 
-                  textAlign="center"
-                  sx={{
-                    color: isAuthenticated ? 'error.main' : 'inherit'
-                  }}
-                >
-                  {isAuthenticated ? 'Logout' : 'zkLogin'}
-                </Typography>
-              </MenuItem>
+
               <MenuItem 
                 onClick={handleCloseNavMenu}
                 sx={{
                   padding: 1,
-                  '& > button': {
-                    width: '100%'
+                  '&:hover': {
+                    backgroundColor: 'transparent'
                   }
                 }}
               >
-                <ButtonContainer>
-                  <StyledConnectButton 
-                    connectText="Connect Wallet"
-                    disabled={isMobile}
-                    title={isMobile ? "Wallet connection is only supported on desktop browsers" : ""}
-                    onMouseLeave={(e) => {
-                      setTimeout(() => {
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        if (!relatedTarget?.closest('.wallet-dropdown')) {
-                          handleCloseNavMenu();
-                        }
-                      }, 100);
-                    }}
-                    sx={{
-                      opacity: isMobile ? 0.6 : 1,
-                      cursor: isMobile ? 'not-allowed' : 'pointer',
-                      '&:hover': {
-                        backgroundColor: isMobile ? '#0071e3' : '#0077ED',
-                        transform: isMobile ? 'none' : 'translateY(-2px)',
-                      }
-                    }}
-                  />
-                </ButtonContainer>
+                <Button
+                  fullWidth
+                  onClick={isAuthenticated ? handleLogout : handleZkLogin}
+                  sx={{ 
+                    ...commonButtonStyles,
+                    backgroundColor: isAuthenticated ? '#0071e3' : '#0071e3',
+                    '&:hover': {
+                      backgroundColor: isAuthenticated ? '#0077ED' : '#0077ED',
+                      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.2)',
+                      transform: 'translateY(-2px)',
+                      filter: 'brightness(1.1)'
+                    }
+                  }}
+                >
+                  {isAuthenticated ? 'Sign Out' : 'Sign in with Google'}
+                </Button>
               </MenuItem>
             </Menu>
           </Box>
