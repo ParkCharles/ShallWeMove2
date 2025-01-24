@@ -14,8 +14,16 @@ const HeroSection = styled(Box)(({ theme }) => ({
   color: 'white',
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'center',
   position: 'relative',
   padding: theme.spacing(8, 0),
+  '& .MuiContainer-root': {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    maxWidth: '1200px',
+    margin: '0 auto'
+  }
 }))
 
 // 애니메이션이 있는 카드

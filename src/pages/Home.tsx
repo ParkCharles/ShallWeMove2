@@ -368,59 +368,32 @@ export function Home() {
         </Container>
       </Box>
 
-      {/* Testnet Info Section */}
-      <Box>
-        <Box sx={{ 
-          bgcolor: '#fff3e0',
-          borderTop: '1px solid #ffe0b2',
-          borderBottom: '1px solid #ffe0b2',
-          py: 6 
-        }}>
-          <Container>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 2
-              }}
-            >
-              {/* 상세 설명 */}
-              <Typography 
-                variant="body1" 
-                align="center" 
-                sx={{ 
-                  maxWidth: 800, 
-                  mx: 'auto',
-                  color: '#9c4221',
-                  fontSize: '1rem',
-                  lineHeight: 1.8,
-                  '& strong': {
-                    fontWeight: 600
-                  }
-                }}
-              >
-                <strong>Testnet Phase:</strong> Free to try. Data will be preserved in mainnet launch.
-              </Typography>
-
-              <Typography 
-                variant="body1" 
-                align="center" 
-                sx={{ 
-                  maxWidth: 800, 
-                  mx: 'auto',
-                  color: '#9c4221',
-                  fontSize: '1rem',
-                  lineHeight: 1.8,
-                  mt: 1
-                }}
-              >
-                <strong>Service Availability:</strong> Currently desktop Chrome only. Mobile and other browsers support coming soon.
-              </Typography>
-            </Box>
-          </Container>
-        </Box>
-      </Box>
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          bgcolor: 'rgba(0, 0, 0, 0.7)', 
+          color: '#fff', 
+          p: 4,
+          borderRadius: 2,
+          textAlign: 'center',
+          maxWidth: '800px',
+          margin: '0 auto',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          mb: 4,
+          fontSize: '1.5rem',
+          lineHeight: 1.6,
+          fontWeight: 400,
+          '& strong': {
+            fontWeight: 600
+          }
+        }}
+      >
+        🔧 <strong>Service Update:</strong> We're currently implementing sponsored transactions to enhance your experience. 
+        During this upgrade, blockchain storage is temporarily paused. 
+        Once completed, you'll be able to record your hiking memories without any transaction fees! 
+        Stay tuned for this exciting update.
+      </Typography>
     </Box>
   )
 } 

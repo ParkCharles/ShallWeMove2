@@ -1,9 +1,7 @@
-import { useState } from 'react';
-import { Box, Container, Grid, Typography, Stack, Link, Button } from '@mui/material';
+import { Box, Container, Grid, Typography, Stack, Link } from '@mui/material';
 import { Email as EmailIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import PrivacyPolicyModal from '@/components/common/PrivacyPolicyModal';
-import TermsOfServiceModal from '@/components/common/TermsOfServiceModal';
+import { Link as RouterLink } from 'react-router-dom';
 
 const StyledFooter = styled('footer')(({ theme }) => ({
   backgroundColor: theme.palette.grey[900],
@@ -13,43 +11,41 @@ const StyledFooter = styled('footer')(({ theme }) => ({
   
   '@media (max-width: 768px)': {
     padding: 'var(--padding-mobile)',
+  },
+
+  '& .grid-container': {
+    marginBottom: '2rem'
+  },
+  
+  '& .contact-link': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    color: 'rgba(255, 255, 255, 0.7)',
+    textDecoration: 'none',
+    transition: 'color 0.2s',
+    
+    '&:hover': {
+      color: 'white'
+    }
+  },
+  
+  '& .social-icon': {
+    width: '24px',
+    height: '24px',
+    filter: 'brightness(0) invert(0.6)',
+    transition: 'filter 0.2s',
+    
+    '&:hover': {
+      filter: 'brightness(0) invert(1)'
+    }
+  },
+  
+  '& .footer-divider': {
+    margin: '2rem 0',
+    borderTop: '1px solid rgba(255, 255, 255, 0.1)'
   }
 }));
-
-const FooterContent = styled(Container)`
-  .grid-container {
-    margin-bottom: 2rem;
-  }
-  
-  .contact-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.7);
-    text-decoration: none;
-    transition: color 0.2s;
-    
-    &:hover {
-      color: white;
-    }
-  }
-  
-  .social-icon {
-    width: 24px;
-    height: 24px;
-    filter: brightness(0) invert(0.6);
-    transition: filter 0.2s;
-    
-    &:hover {
-      filter: brightness(0) invert(1);
-    }
-  }
-  
-  .footer-divider {
-    margin: 2rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-`;
 
 const GradientText = ({ text, gradient }: { text: string; gradient: string }) => (
   <Box 
@@ -68,20 +64,10 @@ const GradientText = ({ text, gradient }: { text: string; gradient: string }) =>
   </Box>
 );
 
-export const Footer = () => {
-  const [openPrivacyPolicy, setOpenPrivacyPolicy] = useState(false);
-  const [openTermsOfService, setOpenTermsOfService] = useState(false);
-
-  // Modal 열기/닫기 핸들러
-  const handleOpenPrivacyPolicy = () => setOpenPrivacyPolicy(true);
-  const handleClosePrivacyPolicy = () => setOpenPrivacyPolicy(false);
-
-  const handleOpenTermsOfService = () => setOpenTermsOfService(true);
-  const handleCloseTermsOfService = () => setOpenTermsOfService(false);
-
+export function Footer() {
   return (
     <StyledFooter>
-      <FooterContent maxWidth="lg">
+      <Container maxWidth="lg">
         <Grid container spacing={4} className="grid-container">
           <Grid item xs={12} md={4}>
             <Typography variant="h6" gutterBottom>
@@ -129,33 +115,44 @@ export const Footer = () => {
         </Grid>
 
         <Box className="footer-divider" />
-        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+        
+        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center', mb: 2 }}>
           © {new Date().getFullYear()} Shall We Move. All rights reserved.
         </Typography>
 
-        <nav style={{ textAlign: 'center' }}>
-          <Button 
-            onClick={handleOpenPrivacyPolicy} // Privacy Policy 모달 열기
-            sx={{ color: 'white', margin: '0 1rem' }}
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 2 }}>
+          <Link
+            component={RouterLink}
+            to="/privacy-policy"
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.7)',
+              textDecoration: 'none',
+              '&:hover': { 
+                color: 'white',
+                textDecoration: 'underline'
+              }
+            }}
           >
             Privacy Policy
-          </Button>
-          <Button 
-            onClick={handleOpenTermsOfService} // Terms of Service 모달 열기
-            sx={{ color: 'white' }}
+          </Link>
+          <Link
+            component={RouterLink}
+            to="/terms-of-service"
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.7)',
+              textDecoration: 'none',
+              '&:hover': { 
+                color: 'white',
+                textDecoration: 'underline'
+              }
+            }}
           >
             Terms of Service
-          </Button>
-        </nav>
-      </FooterContent>
-
-      {/* Privacy Policy Modal */}
-      <PrivacyPolicyModal open={openPrivacyPolicy} handleClose={handleClosePrivacyPolicy} />
-
-      {/* Terms of Service Modal */}
-      <TermsOfServiceModal open={openTermsOfService} handleClose={handleCloseTermsOfService} />
+          </Link>
+        </Box>
+      </Container>
     </StyledFooter>
-  )
+  );
 }
 
 export default Footer
