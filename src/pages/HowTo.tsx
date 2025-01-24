@@ -5,10 +5,9 @@ import FileUploadIcon from '@mui/icons-material/FileUpload'
 import EditIcon from '@mui/icons-material/Edit'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import FlagIcon from '@mui/icons-material/Flag'
 import { Link as RouterLink } from 'react-router-dom'
+import GoogleIcon from '@mui/icons-material/Google'
 
 const Checkpoint = ({ children, index }: { children: React.ReactNode, index: number }) => (
   <motion.div
@@ -25,45 +24,12 @@ const Checkpoint = ({ children, index }: { children: React.ReactNode, index: num
 export function HowTo() {
   const steps = [
     {
-      title: "1. Choose Your Wallet",
+      title: "1. Sign in with Google",
       content: (
         <>
           <Box>
             <Typography variant="body1" color="text.secondary" component="div" paragraph>
-              You can choose between two wallet options:
-            </Typography>
-            <List>
-            <ListItem>
-                <ListItemIcon>
-                  <AccountBalanceWalletIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Stashed Wallet" 
-                  secondary="Simple social login wallet - no extension needed"
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <AccountBalanceWalletIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Sui Wallet" 
-                  secondary="Traditional browser extension wallet with full features"
-                />
-              </ListItem>
-            </List>
-          </Box>
-        </>
-      ),
-      icon: <AccountBalanceWalletIcon />
-    },
-    {
-      title: "2A. Stashed Wallet Setup (Option 1)",
-      content: (
-        <>
-          <Box>
-            <Typography variant="body1" color="text.secondary" component="div" paragraph>
-              If you choose Stashed Wallet - Our Recommended Option for New Users:
+              We've simplified the login process with Google authentication:
             </Typography>
             <List>
               <ListItem>
@@ -71,8 +37,8 @@ export function HowTo() {
                   <CheckCircleIcon color="primary" />
                 </ListItemIcon>
                 <ListItemText 
-                  primary="No Installation Required" 
-                  secondary="Just click 'Connect Wallet' and choose Stashed"
+                  primary="One-Click Sign In" 
+                  secondary="Quick and easy access with your Google account"
                 />
               </ListItem>
               <ListItem>
@@ -80,8 +46,8 @@ export function HowTo() {
                   <CheckCircleIcon color="primary" />
                 </ListItemIcon>
                 <ListItemText 
-                  primary="Simple Social Login" 
-                  secondary="Sign in with your Google or other social accounts - no crypto knowledge needed"
+                  primary="Enhanced Security" 
+                  secondary="Google's robust security protects your account and data"
                 />
               </ListItem>
               <ListItem>
@@ -89,8 +55,8 @@ export function HowTo() {
                   <CheckCircleIcon color="primary" />
                 </ListItemIcon>
                 <ListItemText 
-                  primary="No Gas Fees" 
-                  secondary="We cover all transaction fees for your first hiking records"
+                  primary="No Additional Setup" 
+                  secondary="No need to remember new passwords or install extensions"
                 />
               </ListItem>
               <ListItem>
@@ -108,68 +74,15 @@ export function HowTo() {
               color="text.secondary" 
               sx={{ mt: 2, fontStyle: 'italic' }}
             >
-              We believe blockchain technology should be accessible to everyone. That's why we cover the gas fees for new users, allowing you to focus on recording your hiking memories without worrying about cryptocurrency or transaction costs.
+              We believe technology should enhance your outdoor experience, not complicate it. That's why we chose Google Sign-In - a secure, familiar, and hassle-free way to access our platform.
             </Typography>
           </Box>
         </>
       ),
-      icon: <AccountBalanceWalletIcon />
+      icon: <GoogleIcon />
     },
     {
-      title: "2B. Sui Wallet Setup (Option 2)",
-      content: (
-        <>
-          <Box>
-            <Typography variant="body1" color="text.secondary" component="div" paragraph>
-              If you choose Sui Wallet:
-            </Typography>
-            <List>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Install Wallet" 
-                  secondary="Get the official Sui Wallet extension from Chrome Web Store"
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Connect to Testnet" 
-                  secondary="Click the ⚙️ (settings) icon and select 'Sui Testnet' as your network"
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Get Test Tokens" 
-                  secondary="In settings menu, request Testnet SUI Tokens for storing hiking records"
-                />
-              </ListItem>
-            </List>
-            <Button
-              variant="outlined"
-              color="primary"
-              href="https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil"
-              target="_blank"
-              rel="noopener noreferrer"
-              startIcon={<AddCircleOutlineIcon />}
-              sx={{ mt: 2 }}
-            >
-              Install Sui Wallet
-            </Button>
-          </Box>
-        </>
-      ),
-      icon: <AddCircleOutlineIcon />
-    },
-    {
-      title: "3. Upload Your Hiking Data",
+      title: "2. Upload Your Hiking Data",
       content: (
         <>
           <Box>
@@ -211,22 +124,22 @@ export function HowTo() {
       icon: <FileUploadIcon />
     },
     {
-      title: "4. Fill the Form",
+      title: "3. Fill the Form",
       content: "Upload your GPX file or manually enter your hiking information",
       icon: <EditIcon />
     },
     {
-      title: "5. Add Photos",
+      title: "4. Add Photos",
       content: "Upload photos from your hiking journey to make your record more memorable",
       icon: <PhotoCameraIcon />
     },
     {
-      title: "6. Review & Submit",
+      title: "5. Review & Submit",
       content: "Check all the information and click 'Record Hiking Journey' to store it on the blockchain",
       icon: <CheckCircleIcon />
     },
     {
-      title: "7. Confirmation",
+      title: "6. Confirmation",
       content: "Wait for the transaction to be confirmed. Your hiking record will be preserved on the blockchain!",
       icon: <FlagIcon />
     }
