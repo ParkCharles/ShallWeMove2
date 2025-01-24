@@ -1,4 +1,4 @@
-import { Box, Container, Grid, Typography, Card, CardContent, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
+import { Box, Container, Grid, Typography, Card, CardContent } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { LinearGradient } from 'react-text-gradients'
 import { motion } from 'framer-motion'
@@ -6,7 +6,6 @@ import { useInView } from 'react-intersection-observer'
 import LandscapeIcon from '@mui/icons-material/Landscape'
 import GroupsIcon from '@mui/icons-material/Groups'
 import LightbulbIcon from '@mui/icons-material/Lightbulb'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 
 // Hero Section 배경 이미지 추가
 const HeroSection = styled(Box)(({ theme }) => ({
@@ -454,103 +453,6 @@ export function About() {
               </Grid>
             </Grid>
           </Container>
-        </Box>
-
-        <Box sx={{ mt: 8 }}>
-          <Typography variant="h4" gutterBottom>
-            <LinearGradient gradient={['to right', '#1a237e, #0d47a1']}>
-              Wallet Support
-            </LinearGradient>
-          </Typography>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="h5" gutterBottom color="primary">
-                    Sui Wallet
-                  </Typography>
-                  <Typography variant="body1" paragraph>
-                    Traditional browser extension wallet with full features for experienced Web3 users.
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <CheckCircleIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Full Control" 
-                        secondary="Complete management of your digital assets"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <CheckCircleIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Multiple Networks" 
-                        secondary="Support for testnet and mainnet"
-                      />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ height: '100%', position: 'relative' }}>
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    bgcolor: 'primary.main',
-                    color: 'white',
-                    px: 2,
-                    py: 0.5,
-                    borderRadius: 1,
-                  }}
-                >
-                  Recommended
-                </Box>
-                <CardContent>
-                  <Typography variant="h5" gutterBottom color="primary">
-                    Stashed Wallet
-                  </Typography>
-                  <Typography variant="body1" paragraph>
-                    Simple social login wallet for new users - no extension needed.
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <CheckCircleIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Easy Access" 
-                        secondary="Sign in with your social accounts"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <CheckCircleIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Gas Free" 
-                        secondary="We cover transaction fees for new users"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <CheckCircleIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="No Installation" 
-                        secondary="Start using immediately after login"
-                      />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
         </Box>
       </Container>
     </Box>
