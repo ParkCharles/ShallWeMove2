@@ -72,7 +72,7 @@ const logoStyles = {
   }
 }
 
-const StyledAuthButton = styled(Button)(({}) => ({
+const StyledAuthButton = styled(Button)(() => ({
   '&&': {
     fontSize: '14px !important',
     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif !important',
