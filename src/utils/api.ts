@@ -7,7 +7,7 @@ export interface SponsoredTransactionResponse {
 export interface TransactionResult {
   digest: string;
   status: 'success' | 'failure';
-  effects?: any; // Sui 트랜잭션 효과 타입 정의
+  effects?: Record<string, unknown>; // 정확한 타입 지정
 }
 
 // API 에러 타입
@@ -23,27 +23,41 @@ export const api = {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/sponsored-transaction`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: address, txData: data })
+      body: JSON.stringify({ userId: address, txData: data }),
     });
 
     if (!response.ok) {
-      throw new ApiError('Failed to create sponsored transaction');
+      const errorText = await response.text(); // JSON이 아닐 수도 있으니 텍스트로 받기
+      console.error('API Error:', errorText);
+      throw new ApiError(`Failed to create sponsored transaction: ${errorText}`);
     }
 
-    return response.json();
+    try {
+      return await response.json();
+    } catch (error) {
+      console.error('JSON Parsing Error:', error);
+      throw new ApiError('Invalid JSON response from server');
+    }
   },
 
   async executeTransaction(digest: string, signature: string) {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/execute-transaction`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ digest, signature })
+      body: JSON.stringify({ digest, signature }),
     });
 
     if (!response.ok) {
-      throw new ApiError('Failed to execute transaction');
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new ApiError(`Failed to execute transaction: ${errorText}`);
     }
 
-    return response.json();
+    try {
+      return await response.json();
+    } catch (error) {
+      console.error('JSON Parsing Error:', error);
+      throw new ApiError('Invalid JSON response from server');
+    }
   }
-}; 
+};

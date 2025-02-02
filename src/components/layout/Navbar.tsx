@@ -3,8 +3,8 @@ import { styled } from '@mui/material/styles'
 import { Link as RouterLink } from 'react-router-dom'
 import MenuIcon from '@mui/icons-material/Menu'
 import { useState, useEffect } from 'react'
-import { Auth } from '@/utils/auth'
 import { KeyboardArrowDown } from '@mui/icons-material'
+import { useEnokiFlow } from '@mysten/enoki/react'
 
 const commonButtonStyles = {
   fontSize: '14px',
@@ -110,77 +110,67 @@ const pages = [
 ]
 
 export default function Navbar() {
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(Auth.isAuthenticated())
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [userEmail, setUserEmail] = useState<string>('');
+  const enokiFlow = useEnokiFlow();
 
+  // 인증 상태 체크 단순화
   useEffect(() => {
-    const handleResize = () => {
-      if (menuOpen) {
-        handleCloseNavMenu()
+    const checkAuth = async () => {
+      // JWT 토큰 확인
+      const jwt = sessionStorage.getItem('sui_jwt_token');
+      if (!jwt) {
+        setIsAuthenticated(false);
+        setUserEmail('');
+        return;
       }
-    }
 
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [menuOpen])
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY
-      const appBar = document.querySelector('.MuiAppBar-root') as HTMLElement
-      if (appBar) {
-        if (scrollPosition > 0) {
-          appBar.style.backgroundColor = 'rgba(0,0,0,0.95)'
-        } else {
-          appBar.style.backgroundColor = 'rgba(0,0,0,0.8)'
-        }
-      }
-    }
-    
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  useEffect(() => {
-    // 토큰 상태와 이메일 감지
-    const token = sessionStorage.getItem('sui_jwt_token');
-    setIsAuthenticated(!!token && token !== 'null');
-    if (token) {
       try {
-        const decoded = Auth.decodeJwt();
-        setUserEmail(decoded.email || '');
+        // JWT에서 이메일 정보 추출
+        const payload = JSON.parse(atob(jwt.split('.')[1]));
+        setIsAuthenticated(true);
+        setUserEmail(payload.email || '');
       } catch (error) {
-        console.error('Error decoding token:', error);
+        console.error('JWT parsing error:', error);
+        setIsAuthenticated(false);
+        setUserEmail('');
       }
-    }
-  }, []);
+    };
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget)
-    setMenuOpen(true)
-  }
+    checkAuth();
+  }, []);  // enokiFlow 의존성 제거
 
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null)
-    setMenuOpen(false)
-  }
+  const handleZkLogin = () => {
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    const redirectUrl = `${protocol}//${host}/auth`;
 
-  const handleZkLogin = async () => {
-    try {
-      const auth = new Auth()
-      await auth.login()
-    } catch (error) {
-      console.error('zkLogin error:', error)
-    }
-  }
+    enokiFlow
+      .createAuthorizationURL({
+        provider: 'google',
+        network: 'testnet',
+        clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID!,
+        redirectUrl,
+        extraParams: {
+          scope: ['openid', 'email', 'profile'],
+        },
+      })
+      .then((url) => {
+        window.location.href = url;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
 
   const handleLogout = () => {
-    Auth.logout()
-    setIsAuthenticated(false)
-  }
+    sessionStorage.clear();
+    setIsAuthenticated(false);
+    setUserEmail('');
+    window.location.href = '/';
+  };
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
@@ -188,6 +178,14 @@ export default function Navbar() {
 
   const handleUserMenuClose = () => {
     setAnchorElUser(null);
+  };
+
+  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNav(event.currentTarget);
+  };
+
+  const handleCloseNavMenu = () => {
+    setAnchorElNav(null);
   };
 
   return (

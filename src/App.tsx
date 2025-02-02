@@ -9,7 +9,7 @@ import { HowTo } from '@/pages/HowTo'
 import { Hiking } from '@/pages/Hiking'
 import { PrivacyPolicy } from '@/pages/PrivacyPolicy'
 import { TermsOfService } from '@/pages/TermsOfService'
-import { Auth } from '@/pages/Auth'
+import { AuthPage } from '@/pages/AuthPage'
 import { Box } from '@mui/material'
 
 function App() {
@@ -31,7 +31,7 @@ function App() {
             <Route path="hiking" element={<Hiking />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="terms-of-service" element={<TermsOfService />} />
-            <Route path="auth" element={<Auth />} />
+            <Route path="auth" element={<AuthPage />} />
           </Route>
         </Routes>
       </Box>

@@ -40,9 +40,14 @@ export const createAndExecuteMintNftTransaction = async (
       throw new Error('Wallet address not found');
     }
 
+    console.log('Wallet Address:', walletAddress); // 로그 추가
+
     // 2. Create transaction block
     const tx = new Transaction();
-    
+
+    // Log the params to check if they are being passed correctly
+    console.log('Transaction Params:', params); // 로그 추가
+
     // 3. Add move call
     tx.moveCall({
       target: `${import.meta.env.VITE_PACKAGE_ID}::shallwemove::mint`,
@@ -59,35 +64,83 @@ export const createAndExecuteMintNftTransaction = async (
       ]
     });
 
+    console.log('Transaction after moveCall:', tx); // 로그 추가 (moveCall 이후 상태)
+
     // 4. Build transaction bytes
     const txBytes = await tx.build({ 
       client, 
       onlyTransactionKind: true 
     });
 
+    console.log('Transaction Bytes:', txBytes); // 로그 추가
+
     // 5. Get keypair and sign transaction
-    const keypair = await enokiFlow.getKeypair();
-    if (!keypair) {
-      throw new Error('Failed to get keypair');
+    let keypair; // 🔥 try 블록 밖에서 선언하여 스코프 확장
+
+    try {
+      // EnokiFlow에서 사용자 키페어를 가져옵니다.
+      keypair = await enokiFlow.getKeypair();
+      
+      // 키페어가 없으면 오류를 던집니다.
+      if (!keypair) {
+        throw new Error('Failed to get keypair');
+      }
+
+      // 가져온 키페어를 콘솔에 출력합니다.
+      console.log('Keypair:', keypair);
+    } catch (error) {
+      console.error('Error fetching keypair:', error);
+      throw new Error('Failed to retrieve keypair');
     }
 
     // 6. Request sponsored transaction
-    const sponsored = await fetch(`${import.meta.env.VITE_API_URL}/sponsored-transaction`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        transactionKindBytes: toBase64(txBytes),
-      }),
-    }).then(res => res.json());
+    let sponsored;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/sponsor/route`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transactionKindBytes: toBase64(txBytes),
+          sender: walletAddress,
+          allowedAddresses: [walletAddress],
+          network: 'testnet',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sponsored transaction: ${response.statusText}`);
+      }
+
+      sponsored = await response.json();
+      console.log('Sponsored Transaction:', sponsored);
+
+      if (!sponsored || !sponsored.bytes) {
+        throw new Error('Sponsored transaction response is invalid');
+      }
+    } catch (error) {
+      console.error('Error in sponsored transaction request:', error);
+      throw new Error('Failed to obtain sponsored transaction');
+    }
 
     // 7. Sign the sponsored transaction
-    const signature = await keypair.signTransaction(fromBase64(sponsored.bytes));
-    if (!signature) {
-      throw new Error('Failed to sign transaction');
+    let signature; // 🔥 마찬가지로 try 블록 밖에서 선언
+
+    try {
+      console.log('Signing transaction with keypair...');
+      signature = await keypair.signTransaction(fromBase64(sponsored.bytes));
+
+      if (!signature) {
+        throw new Error('Failed to sign transaction');
+      }
+
+      console.log('Transaction Signature:', signature);
+    } catch (error) {
+      console.error('Error signing transaction:', error);
+      throw new Error('Transaction signing failed');
     }
 
     // 8. Execute the sponsored transaction
-    const result = await fetch(`${import.meta.env.VITE_API_URL}/execute-transaction`, {
+    const result = await fetch(`${import.meta.env.VITE_BACKEND_URL}/execute/route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -100,12 +153,19 @@ export const createAndExecuteMintNftTransaction = async (
       throw new Error('Failed to execute transaction');
     }
 
+    console.log('Transaction Execution Result:', result); // 로그 추가
+
     return tx;
-  } catch (error) {
-    console.error('Error in createAndExecuteMintNftTransaction:', error);
-    throw error;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error in createAndExecuteMintNftTransaction:', error.message);
+      throw new Error(`Mint NFT transaction failed: ${error.message}`);
+    } else {
+      console.error('Unknown error:', error);
+      throw new Error('Mint NFT transaction failed: Unknown error');
+    }
   }
-}
+};
 
 export const formatAddress = (address: string) => {
   if (!address) return '';
