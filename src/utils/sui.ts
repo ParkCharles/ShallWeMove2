@@ -75,30 +75,42 @@ export const createAndExecuteMintNftTransaction = async (
     console.log('Transaction Bytes:', txBytes); // 로그 추가
 
     // 5. Get keypair and sign transaction
-    let keypair; // 🔥 try 블록 밖에서 선언하여 스코프 확장
+    let keypair;
 
     try {
+      console.log('🔒 Generating proof...');
+      const proof = await enokiFlow.getProof({ network: 'testnet' });
+      if (!proof) {
+        throw new Error('Failed to generate proof');
+      }
+      console.log('✅ Proof generated successfully');
+
       // EnokiFlow에서 사용자 키페어를 가져옵니다.
-      keypair = await enokiFlow.getKeypair();
+      console.log('🔑 Getting keypair...');
+      keypair = await enokiFlow.getKeypair({ network: 'testnet' });
       
       // 키페어가 없으면 오류를 던집니다.
       if (!keypair) {
         throw new Error('Failed to get keypair');
       }
 
-      // 가져온 키페어를 콘솔에 출력합니다.
-      console.log('Keypair:', keypair);
+      console.log('✅ Keypair retrieved successfully');
     } catch (error) {
-      console.error('Error fetching keypair:', error);
+      console.error('❌ Error in auth process:', error);
+      if (error instanceof Error && error.message.includes('network is not enabled')) {
+        throw new Error('API key is not configured for testnet. Please check Enoki Portal settings.');
+      }
       throw new Error('Failed to retrieve keypair');
     }
 
     // 6. Request sponsored transaction
     let sponsored;
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/sponsor/route`, {
+      const response = await fetch('/sponsor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           transactionKindBytes: toBase64(txBytes),
           sender: walletAddress,
@@ -140,7 +152,7 @@ export const createAndExecuteMintNftTransaction = async (
     }
 
     // 8. Execute the sponsored transaction
-    const result = await fetch(`${import.meta.env.VITE_BACKEND_URL}/execute/route`, {
+    const result = await fetch('/api/execute/route', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
