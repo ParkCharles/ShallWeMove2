@@ -8,10 +8,9 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { EnokiFlowProvider } from '@mysten/enoki/react'
 import { SuiProvider } from './components/common/SuiProvider'
 import { theme } from '@/theme'
-import App from './App'  // router 대신 App을 import
+import App from './App'
 
 const queryClient = new QueryClient()
 
@@ -33,11 +32,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <CssBaseline />
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <QueryClientProvider client={queryClient}>
-          <EnokiFlowProvider apiKey={import.meta.env.VITE_ENOKI_API_KEY}>
             <SuiProvider>
-              <App />  {/* RouterProvider 대신 App 컴포넌트 사용 */}
+              <App />
             </SuiProvider>
-          </EnokiFlowProvider>
         </QueryClientProvider>
       </LocalizationProvider>
     </ThemeProvider>

@@ -54,5 +54,4 @@ export interface HikingFormProps {
   error: HikingError | null
   children?: React.ReactNode
   onGpxUpload?: (file: File) => Promise<void>
-  account?: boolean,
 } 

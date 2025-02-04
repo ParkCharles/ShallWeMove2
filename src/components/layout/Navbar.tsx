@@ -4,7 +4,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import MenuIcon from '@mui/icons-material/Menu'
 import { useState, useEffect } from 'react'
 import { KeyboardArrowDown } from '@mui/icons-material'
-import { useEnokiFlow } from '@mysten/enoki/react'
+import { Auth } from '@/utils/auth'
 
 const commonButtonStyles = {
   fontSize: '14px',
@@ -114,62 +114,49 @@ export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [userEmail, setUserEmail] = useState<string>('');
-  const enokiFlow = useEnokiFlow();
+  const auth = new Auth();  // Create an instance of Auth
 
-  // 인증 상태 체크 단순화
+  // Check authentication status
   useEffect(() => {
-    const checkAuth = async () => {
-      // JWT 토큰 확인
-      const jwt = sessionStorage.getItem('sui_jwt_token');
-      if (!jwt) {
-        setIsAuthenticated(false);
-        setUserEmail('');
-        return;
-      }
-
-      try {
-        // JWT에서 이메일 정보 추출
-        const payload = JSON.parse(atob(jwt.split('.')[1]));
-        setIsAuthenticated(true);
-        setUserEmail(payload.email || '');
-      } catch (error) {
-        console.error('JWT parsing error:', error);
-        setIsAuthenticated(false);
+    const checkAuth = () => {
+      const isAuth = Auth.isAuthenticated();
+      setIsAuthenticated(isAuth);
+      
+      if (isAuth) {
+        try {
+          const email = Auth.getEmail();
+          setUserEmail(email || '');
+        } catch (error) {
+          console.error('Failed to get user email:', error);
+          setUserEmail('');
+        }
+      } else {
         setUserEmail('');
       }
     };
 
     checkAuth();
-  }, []);  // enokiFlow 의존성 제거
+    
+    // Add event listener for storage changes
+    window.addEventListener('storage', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, []);
 
-  const handleZkLogin = () => {
-    const protocol = window.location.protocol;
-    const host = window.location.host;
-    const redirectUrl = `${protocol}//${host}/auth`;
-
-    enokiFlow
-      .createAuthorizationURL({
-        provider: 'google',
-        network: 'testnet',
-        clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID!,
-        redirectUrl,
-        extraParams: {
-          scope: ['openid', 'email', 'profile'],
-        },
-      })
-      .then((url) => {
-        window.location.href = url;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const handleZkLogin = async () => {
+    try {
+      await auth.login();
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   };
 
   const handleLogout = () => {
-    sessionStorage.clear();
+    Auth.logout();
     setIsAuthenticated(false);
     setUserEmail('');
-    window.location.href = '/';
   };
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {

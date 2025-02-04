@@ -19,21 +19,25 @@ export class ApiError extends Error {
 }
 
 export const api = {
-  async createSponsoredTransaction(address: string, data: { transactionKindBytes: string }) {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/sponsored-transaction`, {
+  async createSponsoredTransaction(address: string, txBytes: string) {
+    const response = await fetch('/api/sponsor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: address, txData: data }),
+      body: JSON.stringify({
+        sender: address,
+        txBytes: txBytes,
+        network: 'testnet'
+      }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text(); // JSON이 아닐 수도 있으니 텍스트로 받기
+      const errorText = await response.text();
       console.error('API Error:', errorText);
       throw new ApiError(`Failed to create sponsored transaction: ${errorText}`);
     }
 
     try {
-      return await response.json();
+      return await response.json() as SponsoredTransactionResponse;
     } catch (error) {
       console.error('JSON Parsing Error:', error);
       throw new ApiError('Invalid JSON response from server');
@@ -41,7 +45,7 @@ export const api = {
   },
 
   async executeTransaction(digest: string, signature: string) {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/execute-transaction`, {
+    const response = await fetch('/api/execute', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ digest, signature }),
@@ -54,7 +58,7 @@ export const api = {
     }
 
     try {
-      return await response.json();
+      return await response.json() as TransactionResult;
     } catch (error) {
       console.error('JSON Parsing Error:', error);
       throw new ApiError('Invalid JSON response from server');

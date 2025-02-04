@@ -1,65 +1,61 @@
 import { NextResponse } from 'next/server';
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Transaction } from '@mysten/sui/transactions';
-import { fromBase64 } from '@mysten/sui/utils';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { fromHex, fromBase64 } from '@mysten/sui/utils';
 
-// 환경변수 디버깅
-console.log('=== Route Environment Check ===');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('SPONSOR_PRIVATE_KEY exists:', !!process.env.SPONSOR_PRIVATE_KEY);
-if (process.env.SPONSOR_PRIVATE_KEY) {
-  console.log('SPONSOR_PRIVATE_KEY value:', {
-    length: process.env.SPONSOR_PRIVATE_KEY.length,
-    prefix: process.env.SPONSOR_PRIVATE_KEY.substring(0, 8) + '...',
-  });
-}
-console.log('=== End Environment Check ===');
-
-const sponsorKey = process.env.SPONSOR_PRIVATE_KEY;
-if (!sponsorKey) {
-  throw new Error('SPONSOR_PRIVATE_KEY is not set');
-}
-
-// Extract the base64 part after 'suiprivkey'
-const base64Key = sponsorKey.startsWith('suiprivkey') ? 
-  sponsorKey.split('1')[1] : 
-  sponsorKey;
-
+// Initialize Sui client
 const client = new SuiClient({ url: getFullnodeUrl('testnet') });
-const keypair = Ed25519Keypair.fromSecretKey(fromBase64(base64Key));
+
+// Create sponsor keypair using hex private key
+const sponsorKeypair = Ed25519Keypair.fromSecretKey(
+  fromHex(process.env.SPONSOR_PRIVATE_KEY!)
+);
 
 export async function POST(request: Request) {
   try {
-    const { txBytes: base64TxBytes, sender } = await request.json();
+    const { txBytes, sender, jwt } = await request.json();
 
-    // Convert base64 to Uint8Array
-    const txBytes = Uint8Array.from(atob(base64TxBytes), c => c.charCodeAt(0));
-
-    // Create transaction from bytes
-    const tx = Transaction.from(txBytes);
-
-    // Set gas owner to sponsor
-    tx.setGasOwner(keypair.getPublicKey().toSuiAddress());
+    // Basic validation
+    if (!jwt || !sender) {
+      return NextResponse.json(
+        { error: 'JWT token and sender address are required' },
+        { status: 401 }
+      );
+    }
     
-    // Build sponsored transaction
-    const sponsoredTxBytes = await tx.build({ client });
+    // 1. Prepare transaction
+    const tx = Transaction.fromKind(fromBase64(txBytes));
+    tx.setSender(sender);
 
-    // Sign the transaction with sponsor's key
-    const signature = await keypair.signTransaction(sponsoredTxBytes);
+    // 2. Set gas configuration
+    const gasPrice = await client.getReferenceGasPrice();
+    tx.setGasPrice(gasPrice);
 
-    // Convert sponsored transaction bytes to base64
-    const base64SponsoredTxBytes = btoa(String.fromCharCode.apply(null, Array.from(sponsoredTxBytes)));
+    // 3. Build transaction
+    const builtTxBytes = await tx.build({ client });
 
-    return NextResponse.json({
-      sponsoredTxBytes: base64SponsoredTxBytes,
-      signature
+    // 4. Sign transaction with sponsor's keypair
+    const { signature: sponsorSignature } = await sponsorKeypair.signTransaction(builtTxBytes);
+
+    // 5. Execute transaction
+    const result = await client.executeTransactionBlock({
+      transactionBlock: builtTxBytes,
+      signature: sponsorSignature,
+      requestType: 'WaitForLocalExecution',
+      options: {
+        showEffects: true,
+        showEvents: true,
+      },
     });
+
+    return NextResponse.json(result);
+    
   } catch (error) {
     console.error('Sponsor API error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
-} 
+}

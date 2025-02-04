@@ -10,6 +10,7 @@ import {
   HikingError
 } from '@/types'
 import { useSuiWallet } from '@/hooks'
+import { Auth } from '@/utils/auth'
 
 // ErrorDisplay Component
 const ErrorDisplay = memo(function ErrorDisplay({ error, onClose }: ErrorDisplayProps) {
@@ -131,7 +132,6 @@ const HikingForm = ({
   loading,
   error: formError,
   onGpxUpload,
-  account,
 }: HikingFormProps) => {
   const { isLoading, error } = useSuiWallet();
   const [gpxError, setGpxError] = useState<HikingError | null>(null)
@@ -470,7 +470,7 @@ const HikingForm = ({
             </Typography>
 
             {/* 에러 메시지 표시 */}
-            {(formError || !account) && (
+            {(formError || !Auth.isAuthenticated) && (
               <Alert 
                 severity={formError?.type || "warning"} 
                 sx={{ mb: 2 }}
@@ -482,7 +482,7 @@ const HikingForm = ({
             <Button
               type="submit"
               variant="contained"
-              disabled={isLoading || !account}
+              disabled={isLoading || !Auth.isAuthenticated}
               fullWidth
             >
               {isLoading ? (

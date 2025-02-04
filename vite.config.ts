@@ -14,17 +14,13 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3000",
         changeOrigin: true,
-        secure: false,
+        secure: false
       },
-      "/sponsor": {
-        target: "http://localhost:3000",
+      "/v1/blobs": {
+        target: "https://publisher.walrus-testnet.walrus.space",
         changeOrigin: true,
-        secure: false,
-      },
-      "/execute": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
-        secure: false,
+        secure: true,
+        rewrite: (path) => path
       }
     },
   },

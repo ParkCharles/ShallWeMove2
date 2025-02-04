@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_ENOKI_API_KEY: string
   readonly VITE_PROVER_URL: string
   readonly VITE_REDIRECT_URL: string
   readonly VITE_OPENID_PROVIDER_URL: string

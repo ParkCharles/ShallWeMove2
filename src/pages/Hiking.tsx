@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
-import { useSuiClient, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit'
+import { useSuiClient } from '@mysten/dapp-kit'
 import { createAndExecuteMintNftTransaction } from '@/utils/sui'
 import { uploadToWalrus } from '@/utils/walrus'
 import { processImage } from '@/utils/image'
 import dayjs from 'dayjs'
 import HikingForm from '@/components/hiking/HikingForm'
 import type { HikingFormData, HikingError } from '@/types'
-import { useGpxUpload, useSuiWallet } from '@/hooks'
-import type { SuiSignAndExecuteTransactionOutput } from '@mysten/wallet-standard'
+import { useGpxUpload } from '@/hooks'
 import type { SuiObjectChange } from '@mysten/sui/client'
 import { Container, Box, Typography, Link as MuiLink } from '@mui/material'
 import { HikingResult } from '@/components/hiking/HikingResult'
@@ -15,15 +14,11 @@ import { LinearGradient } from 'react-text-gradients'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Auth } from '@/utils/auth'
-
 /**
  * Main component for handling hiking record creation and NFT minting
  */
 export function Hiking() {
   const client = useSuiClient();
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction()
-  const account = useCurrentAccount()
-  const { enokiFlow } = useSuiWallet()
   
   const [formData, setFormData] = useState<HikingFormData>({
     location: '',
@@ -49,15 +44,22 @@ export function Hiking() {
   const resultRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Handle auth callback
-    const hash = window.location.hash;
-    if (hash) {
-      const idToken = new URLSearchParams(hash.substring(1)).get('id_token');
-      if (idToken) {
-        sessionStorage.setItem('sui_jwt_token', idToken);
-        // 페이지 리로드하여 상태 업데이트
-        window.location.reload();
+    // Check authentication
+    try {
+      if (!Auth.isAuthenticated()) {
+        console.log('❌ Not authenticated');
+        setError({
+          type: 'warning',
+          message: 'Please sign in to continue'
+        });
+        return;
       }
+    } catch (error) {
+      console.error('❌ Authentication check failed:', error);
+      setError({
+        type: 'error',
+        message: 'Authentication check failed. Please try signing in again.'
+      });
     }
   }, []);
 
@@ -154,55 +156,10 @@ export function Hiking() {
     }))
   })
 
-  const handleTransactionSuccess = async (response: SuiSignAndExecuteTransactionOutput) => {
-    console.log('Transaction successful:', response)
-
-    try {
-      const transaction = await client.waitForTransaction({
-        digest: response.digest,
-        options: {
-          showEffects: true,
-          showObjectChanges: true
-        }
-      })
-
-      console.log('Transaction details:', transaction)
-
-      // Find the created NFT object
-      const nftObject = transaction.objectChanges?.find((change: SuiObjectChange) => 
-        change.type === 'created' && 
-        change.objectType?.includes('::shallwemove::ShallWeMove')
-      ) as { type: 'created', objectId: string } | undefined
-
-      if (nftObject?.objectId) {
-        console.log('Created NFT ID:', nftObject.objectId)
-        setObjectId(nftObject.objectId)
-        setTimeout(() => scrollToElement(resultRef), 100)
-        return
-      }
-
-      console.log('No NFT object found in transaction')
-    } catch (e) {
-      console.error('Error processing transaction:', e)
-      setError({
-        type: 'error',
-        message: 'Failed to process transaction result'
-      })
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     try {
-      if (!account) {
-        setError({
-          type: 'warning',
-          message: 'Please connect your wallet first'
-        })
-        return
-      }
-
       if (!Auth.isAuthenticated()) {
         setError({
           type: 'warning',
@@ -223,44 +180,50 @@ export function Hiking() {
       console.log('Form data:', formData)
       
       console.log('Creating transaction...')
-      const tx = await createAndExecuteMintNftTransaction(
-        enokiFlow,
-        {
-          location: formData.location,
-          description: formData.description,
-          imageUrl: formData.imageUrl,
-          participants: formData.participants,
-          maxElevation: formData.maxElevation,
-          duration: formData.duration,
-          date: formData.date.unix(),
-          startTime: dayjs(`${formData.date.format('YYYY-MM-DD')} ${formData.startTime}`).unix(),
-          endTime: dayjs(`${formData.date.format('YYYY-MM-DD')} ${formData.endTime}`).unix()
-        }
-      );
+      const tx = await createAndExecuteMintNftTransaction({
+        location: formData.location,
+        description: formData.description,
+        imageUrl: formData.imageUrl,
+        participants: formData.participants,
+        maxElevation: formData.maxElevation,
+        duration: formData.duration,
+        date: formData.date.format('YYYY-MM-DD'),
+        startTime: formData.startTime,
+        endTime: formData.endTime
+      });
 
-      console.log('Executing transaction...')
+      console.log('Transaction executed:', tx)
       
-      await signAndExecuteTransaction({
-        transaction: tx
-      }, {
-        onSuccess: (result: SuiSignAndExecuteTransactionOutput) => {
-          console.log('Transaction success:', result)
-          handleTransactionSuccess(result)
-        },
-        onError: (error: Error) => {
-          console.error('Transaction failed:', error)
-          setError({
-            type: 'error',
-            message: error.message || 'Failed to mint NFT'
-          })
+      // Wait for transaction completion
+      const transaction = await client.waitForTransaction({
+        digest: tx.digest,
+        options: {
+          showEffects: true,
+          showObjectChanges: true
         }
       })
+
+      console.log('Transaction details:', transaction)
+
+      // Find the created NFT object
+      const nftObject = transaction.objectChanges?.find((change: SuiObjectChange) => 
+        change.type === 'created' && 
+        change.objectType?.includes('::shallwemove::ShallWeMove')
+      )
+
+      if (!nftObject || !('objectId' in nftObject)) {
+        throw new Error('Failed to find created NFT object')
+      }
+
+      setObjectId(nftObject.objectId)
+      console.log('NFT created:', nftObject.objectId)
       
+      setTimeout(() => scrollToElement(resultRef), 100)
     } catch (error) {
       console.error('Transaction error:', error)
       setError({
         type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to mint NFT'
+        message: error instanceof Error ? error.message : 'Failed to create hiking record'
       })
     } finally {
       setLoading(false)
@@ -338,7 +301,6 @@ export function Hiking() {
             loading={loading || gpxLoading}
             error={error}
             onGpxUpload={handleGpxUpload}
-            account={!!account}
           />
         </Box>
         
